@@ -1,0 +1,63 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 34
+
+    defaultConfig {
+        applicationId "com.securevault"
+        minSdkVersion 29
+        targetSdkVersion 34
+        versionCode 1
+        versionName "0.1.0"
+
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++17"
+                // Pass options to CMake to control third-party builds
+                arguments "-DBUILD_LIBSODIUM=ON", "-DBUILD_ARGON2=ON"
+            }
+        }
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+            version "3.22.1"
+            // Allow Gradle to configure ABI builds and pass args
+            arguments "-DBUILD_LIBSODIUM=ON", "-DBUILD_ARGON2=ON"
+        }
+    }
+
+    ndkVersion "25.2.9519653"
+    // ABI filters to build for
+    ndk {
+        abiFilters "arm64-v8a", "armeabi-v7a", "x86_64"
+    }
+
+    packagingOptions {
+        pickFirst '**/libc++_shared.so'
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    // SQLCipher for Android (encrypted SQLite)
+    implementation 'net.zetetic:android-database-sqlcipher:4.5.0'
+}
+
+// Task to allow CI to run instrumentation tests (including native self-test)
+tasks.register("nativeSelfTest") {
+    group = 'verification'
+    description = 'Run instrumentation tests which include native self-test'
+    dependsOn 'connectedAndroidTest'
+}

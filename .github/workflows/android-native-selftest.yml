@@ -1,0 +1,37 @@
+name: Android Native Self-Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  instrumentation:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Generate Gradle wrapper (if missing)
+        uses: gradle/gradle-build-action@v3
+        with:
+          arguments: 'wrapper --gradle-version 8.4'
+          working-directory: android
+
+      - name: Start Android emulator and run instrumentation tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: google_apis
+          arch: x86_64
+          emulator-options: '-no-window -gpu swiftshader_indirect'
+          script: |
+            chmod +x ./android/gradlew || true
+            ./android/gradlew connectedAndroidTest

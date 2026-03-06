@@ -1,0 +1,10 @@
+#!/usr/bin/env sh
+# Try running the Gradle wrapper JAR if present, otherwise fall back to system gradle.
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+WRAPPER_JAR="$SCRIPT_DIR/gradle/wrapper/gradle-wrapper.jar"
+if [ -f "$WRAPPER_JAR" ]; then
+	exec java -jar "$WRAPPER_JAR" "$@"
+else
+	# Fall back to system gradle; ensure user has Gradle installed.
+	exec gradle "$@"
+fi
